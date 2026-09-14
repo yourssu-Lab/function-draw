@@ -30,6 +30,8 @@ const cases = [
   "field(abs(sin(x*20)*cos(y*20))-.3)",
   "field(-2^2 + 2^-2 + (x^2)^3 - x^(2^3))",
   "r = .2; dx = x - .5; dy = y - .5; f(x,y) = sqrt(dx^2 + dy^2) - r",
+  "f(x) = x",
+  "a = .2; b = a * sin(2 * PI * x); f(x) = .5 + b",
 ];
 describe("every field lowers to mathematical equations", () => {
   it.each(cases)("preserves scalar values: %s", (code) => {
@@ -48,7 +50,7 @@ describe("every field lowers to mathematical equations", () => {
   });
   it("all examples are equations without geometry calls", () => {
     for (const example of examples) {
-      expect(example.code).toContain("f(x, y) =");
+      expect(example.code).toMatch(/f\(x(?:, y)?\) =/);
       expect(parse(example.code).kind).toBe("field");
     }
   });

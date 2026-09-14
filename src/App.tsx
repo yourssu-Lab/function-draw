@@ -27,7 +27,7 @@ function initialCode() {
   try {
     const saved = localStorage.getItem(STORAGE);
     if (!saved) return defaultCode;
-    if (/\bf\s*\(\s*x\s*,\s*y\s*\)\s*=/.test(saved)) return saved;
+    if (/\bf\s*\(\s*x\s*(?:,\s*y\s*)?\)\s*=/.test(saved)) return saved;
     try {
       return toEquation(parse(saved));
     } catch {

@@ -9,6 +9,13 @@ const sourceExamples = [
     code: "subtract(\n  circle(0.5, 0.5, 0.28),\n  circle(0.58, 0.45, 0.20)\n)",
   },
   {
+    id: "function",
+    name: "Function graph",
+    tag: "F(X) = X",
+    description: "Plot y = f(x) with a single variable.",
+    code: "f(x) = x",
+  },
+  {
     id: "circle",
     name: "Circle",
     tag: "SQRT · DISTANCE",
@@ -53,6 +60,6 @@ const sourceExamples = [
 ];
 export const examples = sourceExamples.map((example) => ({
   ...example,
-  code: toEquation(parse(example.code)),
+  code: example.id === "function" ? example.code : toEquation(parse(example.code)),
 }));
 export const defaultCode = examples[0].code;

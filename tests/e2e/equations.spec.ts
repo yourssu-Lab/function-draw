@@ -1,4 +1,33 @@
 import { test, expect } from "@playwright/test";
+test("plot f(x), preserve its source on reload, and expand without changing pixels", async ({ page }) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "Function code" });
+  const render = page.getByRole("button", { name: /Render Function/ });
+  await expect(render).toBeEnabled();
+  await editor.fill("f(x) = x");
+  await render.click();
+  await expect(page.getByText("In sync", { exact: true })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  const pixels = await page.locator("canvas").evaluate((c) => {
+    const canvas = c as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d")!;
+    const sample = (x: number, y: number) => ctx.getImageData(
+      Math.floor(x * canvas.width), Math.floor(y * canvas.height), 1, 1,
+    ).data[0];
+    return [sample(.25, .25), sample(.5, .5), sample(.75, .75), sample(.25, .75), sample(.75, .25)];
+  });
+  expect(pixels).toEqual([0, 0, 0, 255, 255]);
+  const before = await page.locator("canvas").evaluate((c) => (c as HTMLCanvasElement).toDataURL());
+  await page.reload();
+  await expect(editor).toHaveText("f(x) = x");
+  await expect(render).toBeEnabled();
+  await page.getByRole("button", { name: "Expand to equation" }).click();
+  await expect(editor).toContainText("f(x, y) =");
+  await render.click();
+  await expect(page.getByText("In sync", { exact: true })).toBeVisible();
+  expect(await page.locator("canvas").evaluate((c) => (c as HTMLCanvasElement).toDataURL())).toBe(before);
+});
+
 test("expand shorthand without rendering, then edit the equation and render", async ({
   page,
 }) => {

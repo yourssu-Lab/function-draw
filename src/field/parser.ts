@@ -139,7 +139,7 @@ export function parse(source: string): FieldNode {
       const name = peek();
       if (name.kind !== "name")
         throw new FieldError(
-          "Expected an intermediate definition or f(x, y) = expression.",
+          "Expected an intermediate definition, f(x) = expression or f(x, y) = expression.",
           name.pos,
         );
       index++;
@@ -159,14 +159,58 @@ export function parse(source: string): FieldNode {
     take("f");
     take("(");
     take("x");
-    take(",");
-    take("y");
+    const curve = peek().text === ")";
+    if (!curve) {
+      take(",");
+      take("y");
+    }
     take(")");
     take("=");
-    const result = expression();
+    let result = expression();
     if (peek().text === ";") index++;
     if (peek().kind !== "end")
-      throw new FieldError("Expected the end of f(x, y).", peek().pos);
+      throw new FieldError(
+        `Expected the end of ${curve ? "f(x)" : "f(x, y)"}.`,
+        peek().pos,
+      );
+    if (curve) {
+      const check = (expr: Expr): void => {
+        if (expr.type === "variable" && expr.name === "y")
+          throw new FieldError(
+            "f(x) cannot depend on y. Use f(x, y) for a field.",
+            expr.pos,
+          );
+        if (expr.type === "unary") check(expr.value);
+        else if (expr.type === "binary") {
+          check(expr.left);
+          check(expr.right);
+        } else if (expr.type === "call" || expr.type === "array")
+          expr.args.forEach(check);
+      };
+      bindings.forEach((binding) => check(binding.expression));
+      check(result);
+      // Draw y = f(x) as a narrow band in the existing canvas coordinates.
+      // Lowering here keeps composition, equation export and both render modes consistent.
+      const pos = result.pos;
+      result = {
+        type: "binary",
+        op: "-",
+        pos,
+        left: {
+          type: "call",
+          name: "abs",
+          pos,
+          args: [{
+            type: "binary",
+            op: "-",
+            pos,
+            left: { type: "variable", name: "y", pos },
+            right: result,
+          }],
+        },
+        right: { type: "number", value: 0.006, pos },
+      };
+    }
     compileEquation(result, bindings);
     return {
       kind: "field",

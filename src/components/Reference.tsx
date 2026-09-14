@@ -79,6 +79,19 @@ export default function Reference({
             Draw on the left, then convert. Or edit a function on the right,
             then render. Changes only cross panels when you ask them to.
           </p>
+          <h3>Plot a function of x</h3>
+          <pre>{"f(x) = x\n\n// Or try:\n// f(x) = x^2\n// f(x) = 0.5 + 0.2 * sin(2 * PI * x)"}</pre>
+          <p>
+            Write <code>f(x) = expression</code> to draw the curve{" "}
+            <code>y = f(x)</code>. Both coordinates run from 0 to 1, with y
+            increasing downward. The curve has a vertical thickness of 0.012
+            canvas units. Intermediate definitions are supported; use only x,
+            constants and previously defined variables.
+          </p>
+          <p>
+            The ƒ= button expands the curve into a two-variable field so it can
+            be combined with drawings.
+          </p>
           <h3>Every shape is an equation</h3>
           <p>
             Drawings and examples expand to arithmetic, with no shape names in
